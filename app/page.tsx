@@ -17,7 +17,7 @@ export default async function Home(props: PageProps) {
 
   const referer = headersList.get("referer")
   const refererUrl = referer ? new URL(referer) : null
-  const origin = refererUrl?.origin
+  const origin = refererUrl?.origin as string
   
   if(!params) {
     return <h1>PARAMS NOT PASSED</h1>
@@ -70,7 +70,7 @@ export default async function Home(props: PageProps) {
     <main className="flex min-h-screen flex-col items-center justify-center p-4 md:p-24">
       <div className="w-full max-w-md">
         <h1 className="mb-6 text-2xl font-bold text-center">Debit Card Checkout</h1>
-        <DebitCardCheckout mode={mode} />
+        <DebitCardCheckout mode={mode} origin={origin}  />
       </div>
     </main>
   );
