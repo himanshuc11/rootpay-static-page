@@ -1,4 +1,4 @@
-interface SecureDbEntry {
+export type SecureDbEntry =  {
     clientSecret: string;
     allowedOrigins: string[];
 }

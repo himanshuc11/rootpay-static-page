@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import type { ClientData, EncrptedData, HexConverter, VerifyData } from "@/types";
 import { createDecipheriv } from 'node:crypto';
+import { SECURE_DB_DATA } from "@/db";
 
 const toHex: HexConverter = (arr) =>
     Array.from(arr).map((b) => b.toString(16).padStart(2, '0')).join('');
@@ -59,4 +60,12 @@ export function verifyToken(verifyData: VerifyData): boolean {
     } catch {
         return false;
     }
+}
+
+export function getIsValidOrigin(clientId: string, origin: string | undefined) {
+    if(!origin) return false;
+
+    const clientData = SECURE_DB_DATA[clientId];
+    const isValidOrigin = clientData?.allowedOrigins?.includes?.(origin ?? "") ?? false;
+    return isValidOrigin;
 }

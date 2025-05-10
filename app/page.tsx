@@ -1,6 +1,6 @@
 import { QUERY_PARAMS } from "@/constants";
 import { SECURE_DB_DATA } from "@/db";
-import { verifyToken } from "@/utils";
+import { getIsValidOrigin, verifyToken } from "@/utils";
 import { headers } from "next/headers";
 
 type PageProps = {
@@ -44,7 +44,7 @@ export default async function Home(props: PageProps) {
   }
 
   const clientSecret = clientData.clientSecret;
-  const isValidOrigin = clientData.allowedOrigins.includes(origin ?? "");
+  const isValidOrigin = getIsValidOrigin(clientId, origin)
 
   if(!clientSecret) {
     return <h1>Invalid secret</h1>
