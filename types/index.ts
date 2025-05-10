@@ -10,6 +10,8 @@ type EncrptedData = {
 
 type VerifyData = EncrptedData & Pick<ClientData, "clientSecret">
 
+type Mode = "dev" | "production"
+
 type HexConverter =  {
     (arr: Uint8Array): string;
 }
@@ -19,5 +21,6 @@ export type {
     ClientData,
     EncrptedData,
     VerifyData,
-    HexConverter
+    HexConverter,
+    Mode
 }
