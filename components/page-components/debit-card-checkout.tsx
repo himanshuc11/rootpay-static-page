@@ -187,12 +187,13 @@ export function DebitCardCheckout({ mode }: Props) {
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(MOCK_RESPONSES.TIMEOUT), 5000)
       );
-      const data = await createMockResponse(buttonValue);
+      const data = createMockResponse(buttonValue);
       const response = await Promise.race([data, timeoutPromise]);
 
       // TODO: Propagate this to iframe parent.
       console.log('::RESPONSE', response)
     } catch (err) {
+      // TODO: Propagate this to iframe parent.
       console.log('::ERROR', err)
     }
 
