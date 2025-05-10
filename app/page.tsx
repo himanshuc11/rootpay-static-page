@@ -1,3 +1,4 @@
+import { DebitCardCheckout } from "@/components/page-components/debit-card-checkout";
 import { QUERY_PARAMS } from "@/constants";
 import { SECURE_DB_DATA } from "@/db";
 import { getIsValidOrigin, verifyToken } from "@/utils";
@@ -60,12 +61,11 @@ export default async function Home(props: PageProps) {
   }
 
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <button>Geneate Token</button>
-        <button>Encrypt</button>
-        <button>Decrypt</button>
-      </main>
-    </div>
+    <main className="flex min-h-screen flex-col items-center justify-center p-4 md:p-24">
+      <div className="w-full max-w-md">
+        <h1 className="mb-6 text-2xl font-bold text-center">Debit Card Checkout</h1>
+        <DebitCardCheckout />
+      </div>
+    </main>
   );
 }
