@@ -214,7 +214,7 @@ export function DebitCardCheckout() {
           </div>
         </CardContent>
         <CardFooter>
-          <Button type="submit" className="w-full" disabled={!isValid}>
+          <Button type="submit" className="w-full mt-4" disabled={!isValid}>
             Pay Now
           </Button>
         </CardFooter>
