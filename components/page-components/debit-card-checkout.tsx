@@ -89,6 +89,7 @@ const cardSchema = z.object({
 
           return !isBefore(expiryDate, today) && !isAfter(expiryDate, eightYearsFromNow)
         } catch (e) {
+          console.error(e)
           return false
         }
       },
