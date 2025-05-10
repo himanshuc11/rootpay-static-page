@@ -1,6 +1,7 @@
 import { DebitCardCheckout } from "@/components/page-components/debit-card-checkout";
 import { QUERY_PARAMS } from "@/constants";
 import { SECURE_DB_DATA } from "@/db";
+import { Mode } from "@/types";
 import { getIsValidOrigin, verifyToken } from "@/utils";
 import { headers } from "next/headers";
 
@@ -25,6 +26,7 @@ export default async function Home(props: PageProps) {
   const clientId = params[QUERY_PARAMS.CLIENT_ID];
   const sessionToken = params[QUERY_PARAMS.SESSION_TOKEN];
   const iv = params[QUERY_PARAMS.IV];
+  const mode = params[QUERY_PARAMS.MODE] as Mode;
 
   if(!clientId || typeof clientId !== "string") {
     return <h1>CLIENT ID NOT PASSED</h1>
@@ -36,6 +38,10 @@ export default async function Home(props: PageProps) {
 
   if(!iv) {
     return <h1>IV NOT PASSED</h1>
+  }
+
+  if(!mode) {
+    return <h1>No Mode Returned</h1>
   }
 
   const clientData = SECURE_DB_DATA[clientId]
@@ -64,7 +70,7 @@ export default async function Home(props: PageProps) {
     <main className="flex min-h-screen flex-col items-center justify-center p-4 md:p-24">
       <div className="w-full max-w-md">
         <h1 className="mb-6 text-2xl font-bold text-center">Debit Card Checkout</h1>
-        <DebitCardCheckout />
+        <DebitCardCheckout mode={mode} />
       </div>
     </main>
   );

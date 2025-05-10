@@ -11,6 +11,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { CreditCard, Calendar } from "lucide-react"
+import { Mode } from "@/types"
+import { MOCK_RESPONSES } from "@/constants"
+import { createMockResponse } from "@/utils/mock-respone"
 
 // Luhn algorithm for card validation
 function validateCardWithLuhn(cardNumber: string): boolean {
@@ -104,9 +107,13 @@ type FormErrors = {
   expiryDate?: string
 }
 
-export function DebitCardCheckout() {
-  const [cardNumber, setCardNumber] = useState("")
-  const [expiryDate, setExpiryDate] = useState("")
+type Props = {
+  mode: Mode
+}
+
+export function DebitCardCheckout({ mode }: Props) {
+  const [cardNumber, setCardNumber] = useState("5555 5555 5555 4444")
+  const [expiryDate, setExpiryDate] = useState("12/28")
   const [errors, setErrors] = useState<FormErrors>({})
   const [isValid, setIsValid] = useState(false)
 
@@ -153,15 +160,43 @@ export function DebitCardCheckout() {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (isValid) {
-      // Process payment
-      console.log("Payment processed with:", { cardNumber, expiryDate })
-      alert("Payment successful!")
-    } else {
+
+    // Get the button that was clicked
+    const button = document.activeElement as HTMLButtonElement
+    const buttonValue = button?.value as keyof typeof MOCK_RESPONSES 
+
+    // TODO: Propagate this to iframe parent.
+    if(!isValid) {
+      console.error('Incomplete form details', errors)
       validateForm.flush() // Force immediate validation
+      return
     }
+
+    // Actual submit the data
+    if(buttonValue === MOCK_RESPONSES.PRODUCTION) {
+      // Process payment with button value
+      console.log("Payment processed with:", { cardNumber, expiryDate, buttonValue })
+      alert("Payment successful!")
+      return;
+    }
+    
+    // Mock submission
+    try {
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(MOCK_RESPONSES.TIMEOUT), 5000)
+      );
+      const data = await createMockResponse(buttonValue);
+      const response = await Promise.race([data, timeoutPromise]);
+
+      // TODO: Propagate this to iframe parent.
+      console.log('::RESPONSE', response)
+    } catch (err) {
+      console.log('::ERROR', err)
+    }
+
+    
   }
 
   return (
@@ -214,9 +249,27 @@ export function DebitCardCheckout() {
           </div>
         </CardContent>
         <CardFooter>
-          <Button type="submit" className="w-full mt-4" disabled={!isValid}>
-            Pay Now
-          </Button>
+          <div className="mt-4 w-full gap-y-2">
+            {mode === "production" && (
+              <Button type="submit" className="w-full" disabled={!isValid} value={MOCK_RESPONSES.PRODUCTION}>
+                Pay Now
+              </Button>
+            )}
+
+            {mode === "dev" && (
+              <div className="gap-y-2">
+                <Button type="submit" className="w-full bg-green-500 mt-2" disabled={!isValid} value={MOCK_RESPONSES.SUCCESS}>
+                  Success
+                </Button>
+                <Button type="submit" className="w-full bg-red-500 mt-2" disabled={!isValid} value={MOCK_RESPONSES.FAILURE}>
+                  Failure
+                </Button>
+                <Button type="submit" className="w-full bg-orange-500 mt-2" disabled={!isValid} value={MOCK_RESPONSES.TIMEOUT}>
+                  Timeout
+                </Button>
+              </div>
+            )}
+          </div>
         </CardFooter>
       </form>
     </Card>
