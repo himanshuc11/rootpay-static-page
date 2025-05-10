@@ -14,6 +14,7 @@ import { CreditCard, Calendar } from "lucide-react"
 import { Mode } from "@/types"
 import { MOCK_RESPONSES } from "@/constants"
 import { createMockResponse } from "@/utils/mock-respone"
+import { publishEvent } from "@/utils/publish-events"
 
 // Luhn algorithm for card validation
 function validateCardWithLuhn(cardNumber: string): boolean {
@@ -108,10 +109,11 @@ type FormErrors = {
 }
 
 type Props = {
-  mode: Mode
+  mode: Mode;
+  origin: string;
 }
 
-export function DebitCardCheckout({ mode }: Props) {
+export function DebitCardCheckout({ mode, origin }: Props) {
   const [cardNumber, setCardNumber] = useState("5555 5555 5555 4444")
   const [expiryDate, setExpiryDate] = useState("12/28")
   const [errors, setErrors] = useState<FormErrors>({})
@@ -167,10 +169,9 @@ export function DebitCardCheckout({ mode }: Props) {
     const button = document.activeElement as HTMLButtonElement
     const buttonValue = button?.value as keyof typeof MOCK_RESPONSES 
 
-    // TODO: Propagate this to iframe parent.
     if(!isValid) {
-      console.error('Incomplete form details', errors)
       validateForm.flush() // Force immediate validation
+      publishEvent({status: MOCK_RESPONSES.FAILURE, message: `${errors.cardNumber} error and ${errors.expiryDate}` }, origin)
       return
     }
 
@@ -188,16 +189,13 @@ export function DebitCardCheckout({ mode }: Props) {
         setTimeout(() => reject(MOCK_RESPONSES.TIMEOUT), 5000)
       );
       const data = createMockResponse(buttonValue);
-      const response = await Promise.race([data, timeoutPromise]);
+      const response = await Promise.race([data, timeoutPromise]) as string;
 
-      // TODO: Propagate this to iframe parent.
-      console.log('::RESPONSE', response)
+      publishEvent({status: MOCK_RESPONSES.SUCCESS, message: response }, origin)
     } catch (err) {
-      // TODO: Propagate this to iframe parent.
-      console.log('::ERROR', err)
+      const errorMsg = err as string
+      publishEvent({status: MOCK_RESPONSES.FAILURE, message: errorMsg }, origin)
     }
-
-    
   }
 
   return (
