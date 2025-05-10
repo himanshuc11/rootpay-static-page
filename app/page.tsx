@@ -1,5 +1,7 @@
 import { QUERY_PARAMS } from "@/constants";
 import { SECURE_DB_DATA } from "@/db";
+import { verifyToken } from "@/utils";
+import { headers } from "next/headers";
 
 type PageProps = {
   searchParams: Promise<{ [key: string]: string | undefined }>
@@ -8,8 +10,13 @@ type PageProps = {
 export default async function Home(props: PageProps) {
   const { searchParams }  = props;
 
+  const headersList = await headers()
   const params = await searchParams;
 
+  const referer = headersList.get("referer")
+  const refererUrl = referer ? new URL(referer) : null
+  const origin = refererUrl?.origin
+  
   if(!params) {
     return <h1>PARAMS NOT PASSED</h1>
   }
@@ -30,10 +37,26 @@ export default async function Home(props: PageProps) {
     return <h1>IV NOT PASSED</h1>
   }
 
-  const clientSecret = SECURE_DB_DATA[clientId]
+  const clientData = SECURE_DB_DATA[clientId]
   
-  if(!clientSecret) {
+  if(!clientData) {
     return <h1>Invalid Credentials</h1>
+  }
+
+  const clientSecret = clientData.clientSecret;
+  const isValidOrigin = clientData.allowedOrigins.includes(origin ?? "");
+
+  if(!clientSecret) {
+    return <h1>Invalid secret</h1>
+  }
+
+  if(!isValidOrigin) {
+    return <h1>Invalid Origin</h1>
+  }
+
+  const isValidToken = verifyToken({ clientSecret, token: sessionToken, iv });
+  if(!isValidToken) {
+    return <h1>Invalid combination of credentials</h1>
   }
 
   return (
