@@ -1,6 +1,9 @@
 import { randomBytes } from "node:crypto";
-import type { ClientData, EncrptedData, VerifyData } from "@/types";
-import { createCipheriv, createDecipheriv } from 'node:crypto';
+import type { ClientData, EncrptedData, HexConverter, VerifyData } from "@/types";
+import { createDecipheriv } from 'node:crypto';
+
+const toHex: HexConverter = (arr) =>
+    Array.from(arr).map((b) => b.toString(16).padStart(2, '0')).join('');
 
 export function generateClientIdAndClientSecret(): ClientData {
     const clientId = randomBytes(32).toString("hex");
@@ -12,16 +15,35 @@ export function generateClientIdAndClientSecret(): ClientData {
     }
 }
 
-export function generateSecureToken(clientSecret: string): EncrptedData {
-    const iv = randomBytes(16);
-    const cipher = createCipheriv('aes-256-gcm', Buffer.from(clientSecret.slice(0, 32)), iv);
-    const encrypted = cipher.update(Date.now().toString(), 'utf8', 'hex');
-    const final = encrypted + cipher.final('hex');
-    const authTag = cipher.getAuthTag();
+export async function generateSecureToken(clientSecret: string): Promise<EncrptedData> {
+    const iv = crypto.getRandomValues(new Uint8Array(16));
+    const key = new TextEncoder().encode(clientSecret.slice(0, 32));
+  
+    const cryptoKey = await crypto.subtle.importKey(
+      'raw',
+      key,
+      { name: 'AES-GCM' },
+      false,
+      ['encrypt']
+    );
+  
+    const encodedTimestamp = new TextEncoder().encode(Date.now().toString());
+    const encrypted = await crypto.subtle.encrypt(
+      {
+        name: 'AES-GCM',
+        iv
+      },
+      cryptoKey,
+      encodedTimestamp
+    );
+  
+    const encryptedArray = new Uint8Array(encrypted);
+    const authTag = encryptedArray.slice(-16);
+    const encryptedContent = encryptedArray.slice(0, -16);
     
     return {
-        token: `${final}.${authTag.toString('hex')}`,
-        iv: iv.toString('hex')
+      token: `${toHex(encryptedContent)}.${toHex(authTag)}`,
+      iv: toHex(iv)
     };
 }
 
