@@ -50,7 +50,6 @@ const cspHeader = `
     contentSecurityPolicyHeaderValue
   )
  
-  console.log('::running csp middleware')
   return response
 }
 export const config = {
